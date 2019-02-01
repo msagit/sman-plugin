@@ -1,0 +1,32 @@
+unit SManLog;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls;
+
+type
+  TSManFormLog = class(TForm)
+    mSManLog: TMemo;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  SManFormLog: TSManFormLog;
+procedure LogMessage(Message:string);
+implementation
+
+{$R *.dfm}
+procedure ShowLog
+begin
+end;
+
+procedure LogMessage(Message:string);
+begin
+end;
+
+end.

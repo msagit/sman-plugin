@@ -1,0 +1,22 @@
+ID=PL/SQL Developer Preference File
+[Plug-Ins]
+SMan.SManGetObjectFunctionTpl=
+SMan.SManWorkingDirectory=c:\work\demo\%COMPONENT%
+SMan.SManExecuteAfterExport=echo %COMPONENT% >C:\work\demo\%COMPONENT%\cmd.log
+SMan.pSManExecuteAfterObjectExport=echo custorm %COMPONENT%  %OBJECTNAME%>C:\work\demo\%COMPONENT%\obj\cmd.log
+SMan.SManExecuteAfterComponentExport=echo custorm %COMPONENT% >C:\work\demo\full\%COMPONENT%\cmd.log
+SMan.SManCustomComponentCommand=echo custorm %COMPONENT% "%MSG%">C:\work\demo\%COMPONENT%\cmd.log
+SMan.pSManNeedMessageCustomComponentCommand=Y
+SMan.SManLastMessageCustomComponentCommand=
+SMan.SManSchema=sman
+SMan.SManPlugingAPI=pkg_sman$plugin
+SMan.SManWorkingObjectDirectory=C:\work\demo\obj\%COMPONENT%\
+SMan.SManWorkingComponentDirectory=C:\work\demo\full\%COMPONENT%\
+SMan.SManMakeBAK=echo compare %COMPONENT%  %1 %2>C:\work\demo\%COMPONENT%\cmp.log
+SMan.SManExportOnCompile=n
+SMan.SManAfterObjectExportCmd=echo custorm %COMPONENT%  %OBJECTNAME%>C:\work\demo\%COMPONENT%\obj\cmd.log
+SMan.SManAfterComponentExportCmd=echo custorm %COMPONENT% >C:\work\demo\full\%COMPONENT%\cmd.log
+SMan.SManCustomComponentCmd=echo custorm %COMPONENT% "%MSG%">C:\work\demo\%COMPONENT%\cmd.log
+SMan.SManNeedMessageCustomComponentCmd=Y
+SMan.SManCompareCmd="C:\Program Files\PLSQL Developer\ExamDiff\ExamDiff.exe" %1 %2
+SMan.SManTempDirectory=C:\work\demo\tmp\%COMPONENT%\

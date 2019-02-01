@@ -1,0 +1,203 @@
+unit SManIndicator;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ExtCtrls, Buttons, SManPrefUnit, SManServerWrapper,
+  ComCtrls, Gauges;
+
+type
+  TSManIndicatorForm = class(TForm)
+    Panel1: TPanel;
+    Panel2: TPanel;
+    Shape1: TShape;
+    Shape2: TShape;
+    Panel3: TPanel;
+    cbComponent: TComboBox;
+    Panel4: TPanel;
+    stCurrentType: TEdit;
+    stCurrentName: TEdit;
+    btnExportObject: TBitBtn;
+    btnComponentConfig: TBitBtn;
+    Panel5: TPanel;
+    gProgress: TGauge;
+    procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure btnExportObjectClick(Sender: TObject);
+    procedure btnComponentConfigClick(Sender: TObject);
+    procedure cbComponentSelect(Sender: TObject);
+
+  private
+    fRegisteredObject:boolean;
+    fRegisteredSchema:boolean;
+    fConnected:boolean;
+    fOnExportObject: TNotifyEvent;
+    { Private declarations }
+    function GetComponent:string;
+    procedure SetComponent(const aValue:string);
+    function GetObjectType:string;
+    procedure SetObjectType(const aValue:string);
+    function GetObjectName:string;
+    procedure SetObjectName(const aValue:string);
+    function GetRegisteredObject:boolean;
+    procedure SetRegisteredObject(const aValue:boolean);
+    function GetRegisteredSchema:boolean;
+    procedure SetRegisteredSchema(const aValue:boolean);
+    function GetConnected:boolean;
+    procedure SetConnected(const aValue:boolean);
+
+  protected
+    procedure ExportObject; dynamic;
+    property OnExportObject: TNotifyEvent read FOnExportObject write FOnExportObject;
+  public
+    { Public declarations }
+    property ObjectType: string read GetObjectType write SetObjectType;
+    property ObjectName: string read GetObjectName write SetObjectName;
+    property Component: string read GetComponent write SetComponent;
+    property RegisteredObject: boolean read GetRegisteredObject write SetRegisteredObject;
+    property RegisteredSchema: boolean read GetRegisteredSchema write SetRegisteredSchema;
+    property Connected: boolean read GetConnected write SetConnected;
+
+  end;
+
+var
+  SManIndicatorForm: TSManIndicatorForm;
+
+implementation
+//uses SManLogUnit;
+
+{$R *.dfm}
+
+procedure TSManIndicatorForm.ExportObject;
+begin
+ if Assigned(fOnExportObject) then fOnExportObject(Self);
+end;
+
+procedure TSManIndicatorForm.FormCreate(Sender: TObject);
+begin
+   //stCurrentType.Caption:='';
+   //stCurrentName.Caption:='';
+   Connected:=false;
+   //LogMessage('Indicator create');
+end;
+
+function TSManIndicatorForm.GetComponent:string;
+var vIndex:integer;
+begin
+   vIndex:=cbComponent.ItemIndex;
+    result := cbComponent.Text;
+end;
+
+procedure TSManIndicatorForm.SetComponent(const aValue:string);
+begin
+   //stCurrentType.Caption:=aValue;
+end;
+
+function TSManIndicatorForm.GetObjectType:string;
+begin
+   result:=stCurrentType.Text;
+end;
+
+procedure TSManIndicatorForm.SetObjectType(const aValue:string);
+begin
+   stCurrentType.Text:=aValue;
+end;
+
+function TSManIndicatorForm.GetObjectName:string;
+begin
+   Result:=stCurrentName.Text;
+end;
+
+procedure TSManIndicatorForm.SetObjectName(const aValue:string);
+begin
+   stCurrentName.Text:=aValue;
+end;
+
+function TSManIndicatorForm.GetRegisteredObject:boolean;
+begin
+   Result:=fRegisteredObject;
+end;
+
+procedure TSManIndicatorForm.SetRegisteredObject(const aValue:boolean);
+begin
+   fRegisteredObject:=aValue;
+   //stCurrentName.Caption:=stCurrentName.Caption+':'+BoolToStr(aValue,true);
+   if fRegisteredObject then
+   begin
+     stCurrentName.Color:=clLime;
+     btnExportObject.Enabled:=true;
+   end
+   else
+   begin
+     stCurrentName.Color:=clBtnFace;
+     btnExportObject.Enabled:=false;
+   end;
+end;
+
+function TSManIndicatorForm.GetRegisteredSchema:boolean;
+begin
+   Result:=fRegisteredSchema;
+   //if not Result then LogMessage('Indicator is set: Schema is not registered');
+end;
+
+procedure TSManIndicatorForm.SetRegisteredSchema(const aValue:boolean);
+begin
+   //LogMessage('Indicator is set to:'+BoolToStr(aValue,true));
+   fRegisteredSchema:=aValue;
+   if fRegisteredSchema then
+   begin
+     Shape2.Brush.Color:=clLime;
+   end
+   else
+   begin
+     Shape2.Brush.Color:=clBtnFace;
+   end;
+end;
+
+function TSManIndicatorForm.GetConnected:boolean;
+begin
+   Result:=fConnected;
+end;
+
+procedure TSManIndicatorForm.SetConnected(const aValue:boolean);
+begin
+   fConnected:=aValue;
+   if fConnected then
+     Shape1.Brush.Color:=clLime
+   else
+   begin
+     Shape1.Brush.Color:=clSilver;
+     Shape2.Brush.Color:=clSilver;
+     cbComponent.Clear;
+     ObjectType:='';
+     ObjectName:='';
+     RegisteredObject:=false;
+     RegisteredSchema:=false;
+     btnComponentConfig.Enabled:=false;
+   end;
+end;
+procedure TSManIndicatorForm.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+   Action:=caHide;
+end;
+
+procedure TSManIndicatorForm.btnExportObjectClick(Sender: TObject);
+begin
+  //LogMessage('Export SMan for '+vType+' '+vOwner+'.'+vName+'.'+vSubObject);
+  SManServer.ExportObject(Self.Component,Self.ObjectName, PropertyList.Values[PropertiesKeys[pSManWorkingDirectory]]);
+
+end;
+
+procedure TSManIndicatorForm.btnComponentConfigClick(Sender: TObject);
+begin
+   SManServer.ComponentReport(Self.Component);
+end;
+
+procedure TSManIndicatorForm.cbComponentSelect(Sender: TObject);
+begin
+   btnComponentConfig.Enabled:=Self.Component<>'';
+end;
+
+end.

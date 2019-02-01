@@ -1,0 +1,148 @@
+create or replace package pkg_sman$plugin authid current_user is
+
+  -- Author  : MSA
+  -- Created : 2/14/2016 6:59:01 PM
+  -- Purpose : SMan Plugin API
+  c_api_version constant varchar2(240) := '1.0.0';
+
+  function get_version return varchar2;
+  function get_api_version return varchar2;
+
+  type to_key_val is record(
+    key varchar2(4000),
+    val varchar2(4000));
+  type tt_key_val is table of to_key_val;
+
+  type to_key_data is record(
+    key  varchar2(4000),
+    data clob);
+
+  type tt_key_data is table of to_key_data;
+
+  function get_components return tt_key_val
+    pipelined;
+  function get_schemas return tt_key_val
+    pipelined;
+  function get_groups return tt_key_val
+    pipelined;
+
+  procedure register_object(ip_component   in varchar2,
+                            ip_object_name in varchar2,
+                            ip_object_type in varchar2 default null);
+  procedure register_schema(ip_schema_name in varchar2);
+  function is_object_registred(ip_component   in varchar2,
+                               ip_object_name in varchar2) return number;
+  function is_schema_registred(ip_schema_name in varchar2) return number;
+  function get_object(ip_component in varchar2, ip_object_name in varchar2)
+    return tt_key_data
+    pipelined;
+end pkg_sman$plugin;
+/
+create or replace package body pkg_sman$plugin is
+  function get_version return varchar2 is
+  begin
+    return pkg_sman$.get_version;
+  end get_version;
+
+  function get_api_version return varchar2 is
+  begin
+    return c_api_version;
+  end get_api_version;
+
+  function get_components return tt_key_val
+    pipelined is
+    v_comp to_key_val;
+  begin
+    for i in (select t.cmp_id key, t.cmp_desc val from sman$_component t) loop
+      v_comp.key := i.key;
+      v_comp.val := i.val;
+      pipe row(v_comp);
+    end loop;
+    return;
+  end get_components;
+
+  function get_schemas return tt_key_val
+    pipelined is
+    v_comp to_key_val;
+  begin
+    for i in (select t.schema_nm key, t.status_cd val
+                from SMAN$_REGISTERED_SCHEMA t) loop
+      v_comp.key := i.key;
+      v_comp.val := i.val;
+      pipe row(v_comp);
+    end loop;
+    return;
+  end get_schemas;
+
+  function get_groups return tt_key_val
+    pipelined is
+    v_comp to_key_val;
+  begin
+    for i in (select t.group_cd key, t.group_desc val from sman$_group t) loop
+      v_comp.key := i.key;
+      v_comp.val := i.val;
+      pipe row(v_comp);
+    end loop;
+    return;
+  end get_groups;
+
+  procedure register_object(ip_component   in varchar2,
+                            ip_object_name in varchar2,
+                            ip_object_type in varchar2 default null) is
+  begin
+    pkg_sman$.p_register_object(ip_component   => ip_component,
+                                ip_object_name => upper(ip_object_name),
+                                ip_object_type => upper(ip_object_type));
+  end;
+
+  procedure register_schema(ip_schema_name in varchar2) is
+  begin
+    pkg_sman$.p_register_schema(ip_schema_name => ip_schema_name);
+  end;
+
+  function is_object_registred(ip_component   in varchar2,
+                               ip_object_name in varchar2) return number is
+    v_cnt number;
+  begin
+    select count(1)
+      into v_cnt
+      from sman$_object_config t
+     where t.cmp_cmp_id = ip_component
+       and t.object_name = upper(ip_object_name);
+    if v_cnt > 0 then
+      return 0;
+    else
+      return - 1;
+    end if;
+  end;
+
+  function is_schema_registred(ip_schema_name in varchar2) return number is
+    v_cnt number;
+  begin
+    select count(1)
+      into v_cnt
+      from sman$_registered_schema t
+     where t.schema_nm = upper(ip_schema_name)
+       and t.status_cd = 'A';
+    if v_cnt > 0 then
+      return 0;
+    else
+      return - 1;
+    end if;
+  end;
+
+  function get_object(ip_component in varchar2, ip_object_name in varchar2)
+    return tt_key_data
+    pipelined is
+    v_row to_key_data;
+  begin
+    for i in (select *
+                from table(pkg_sman$.get_single_object(p_component   => ip_component,
+                                                       p_object_name => upper(ip_object_name)))) loop
+      v_row.key  := i.path || i.file_name;
+      v_row.data := i.data;
+      pipe row(v_row);
+    end loop;
+  end;
+end pkg_sman$plugin;
+/
